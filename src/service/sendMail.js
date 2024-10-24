@@ -1,5 +1,5 @@
 // using smtp from cpanel
-import nodemailer from "nodemailer";
+const nodemailer = require("nodemailer");
 
 const sendEmail = async (options) => {
     try {
@@ -26,4 +26,4 @@ const sendEmail = async (options) => {
     }
 };
 
-export default sendEmail;
+module.exports = sendEmail;

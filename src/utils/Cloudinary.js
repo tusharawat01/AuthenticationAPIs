@@ -1,5 +1,5 @@
-import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs';
+const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
 
 // Cloudinary configuration
 cloudinary.config({
@@ -33,25 +33,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 };
 
-// Function to delete a file from Cloudinary
-const deleteFromCloudinary = async (publicId, resourceType = 'image') => {
-    try {
-        // Ensure publicId is provided
-        if (!publicId) {
-            console.error("Public ID for Cloudinary deletion is missing");
-            return null;
-        }
 
-        // Delete the file from Cloudinary using its public ID
-        const response = await cloudinary.uploader.destroy(publicId, {
-            resource_type: resourceType
-        });
-        return response;  // Return Cloudinary deletion response
 
-    } catch (error) {
-        console.error("Error while deleting from Cloudinary:", error);
-        return null;
-    }
-};
-
-export { uploadOnCloudinary, deleteFromCloudinary };
+// Export functions for use in other files
+module.exports = uploadOnCloudinary;

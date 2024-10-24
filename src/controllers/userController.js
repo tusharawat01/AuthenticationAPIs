@@ -5,7 +5,8 @@ const MailChecker = require('mailchecker');
 const otpGenerator =  require("otp-generator");
 const sendEmail = require("../service/sendMail.js");
 const db = require('../config/db');
-const { uploadOnCloudinary } =  require("../utils/Cloudinary.js");
+const { promisify } = require('util');
+const uploadOnCloudinary  =  require("../utils/Cloudinary.js");
 
 
 // Register a user
@@ -13,41 +14,52 @@ exports.registerUser = async (req, res) => {
     const userData = req.body;
 
     try {
+
+        // Check if user already exists
         const existingUser = await userModel.findUserByEmail(userData.email);
         if (existingUser) {
             return res.status(400).json({ message: 'Email already exists' });
         }
 
-    //Check for images ,check for avatar (save image or file to diskStorage or localPath of multer and avatar is required)
-    // console.log("Req files : ", req.files);
-    // const avatarLocalPath = req.files?.photo1[0]?.path;
-    // const coverImageLocalPath = req.files?.photo2[0]?.path;
+        // Check for uploaded images
+        let avatarLocalPath;
+        if (req.files && req.files.photo1 && req.files.photo1.length > 0) {
+            avatarLocalPath = req.files.photo1[0].path;
+            // console.log("avatarLocalPath : ",avatarLocalPath)
+        } else {
+            return res.status(400).json({ message: 'Avatar is required' });
+        }
 
-    let avatarLocalPath;
-    if (req.files && Array.isArray(req.files.photo1) && req.files.photo1.length > 0) {
-        avatarLocalPath = req.files.photo1[0].path;
+        let coverImageLocalPath;
+        if (req.files && req.files.photo2 && req.files.photo2.length > 0) {
+            coverImageLocalPath = req.files.photo2[0].path;
+            // console.log("coverImageLocalPath : ",coverImageLocalPath)
+        }else{
+            return res.status(400).json({ message: 'Cover Image is required' });
+        }
+        
+        // Upload images to Cloudinary
+        const avatar = await uploadOnCloudinary(avatarLocalPath);
+        if (!avatar) {
+            return res.status(400).json({ message: 'Avatar File is required' });
+        }
+       
+        const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+        if (!coverImage) {
+            return res.status(400).json({ message: 'coverImage File is required' });
+        }
 
-    }
-
-    let coverImageLocalPath;
-    if (req.files && Array.isArray(req.files.photo2) && req.files.photo2.length > 0) {
-        coverImageLocalPath = req.files.photo2[0].path;
-
-    }
-
-    //5.) Upload them to cloudinary (avatar is required to upload)
-    const avatar = await uploadOnCloudinary(avatarLocalPath);
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
-
-    userData.photo1 = avatar?.url || "";
-    userData.photo2 = coverImage?.url || "";
-
+        // Set the uploaded URLs in userData
+        userData.photo1 = avatar?.url || "";
+        userData.photo2 = coverImage?.url || "";
+       
         // Hash the password
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-    userData.password = hashedPassword;
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        userData.password = hashedPassword;
 
-    const result = await userModel.createUser(userData);
-    res.status(201).json({ message: 'User registered successfully', userId: result.insertId });
+        // Create user in the database
+        const result = await userModel.createUser(userData);
+        res.status(201).json({ message: 'User registered successfully', userId: result.insertId });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -114,14 +126,14 @@ exports.createAdminAccount = async () => {
         const hashedPassword = await bcrypt.hash(adminPassword, 10);
         const adminData = { email: adminEmail, password: hashedPassword, role: 'admin' };
 
-        await User.createUser(adminData);
+        await userModel.createUser(adminData);
         console.log('Admin account created successfully');
     } catch (err) {
         console.error('Error creating admin account:', err.message);
     }
 };
 
-
+//OTP sent to mail
 exports.generateAndSendForgotPasswordOTP = async (req, res) => {
     try {
         const { email } = req.body;
@@ -177,7 +189,7 @@ exports.generateAndSendForgotPasswordOTP = async (req, res) => {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h2>AERO2ASTRO Tech</h2>
+                        <h2>Forget Password</h2>
                     </div>
                     <p>Hello,</p>
                     <p>Your OTP for resetting the password is:</p>
@@ -200,11 +212,12 @@ exports.generateAndSendForgotPasswordOTP = async (req, res) => {
     }
 };
 
+//Confirmation of OTP
 exports.verifyForgotPassOTP = async (req, res) => {
     try {
-        const { otp } = req.body;
+        const { otp, token} = req.body;
 
-        const token = req.headers.forgotauth || (req.headers.cookie && req.headers.cookie.split('forgotAuth=')[1]);
+        // const token = req.headers.forgotauth || (req.headers.cookie && req.headers.cookie.split('forgotAuth=')[1]);
 
         if (!otp || !token) {
             return res.status(400).json({ message: "OTP and token is required" });
@@ -235,10 +248,11 @@ exports.verifyForgotPassOTP = async (req, res) => {
     }
 };
 
+//Create a new Password
 exports.updatePassword = async (req, res) => {
     try {
-        const { newPassword } = req.body;
-        const token = req.headers.changePassToken || (req.headers.cookie && req.headers.cookie.split('changePassToken=')[1]);
+        const { newPassword, token } = req.body;
+        // const token = req.headers.changePassToken || (req.headers.cookie && req.headers.cookie.split('changePassToken=')[1]);
         if (!token) {
             return res.status(400).json({ message: "Something went wrong kindly contact the support team or Try Again!" });
         }
@@ -269,35 +283,110 @@ exports.updatePassword = async (req, res) => {
 // Update Profile Controller
 exports.updateProfile = async (req, res) => {
     try {
-        const { id } = req.user;  // Assuming you're using a JWT for authentication and have middleware for user extraction
-        const { first_name, last_name, gender, dob, house_flat, area_society, city, state, country, pin_code } = req.body;
+        const { id } = req.user; 
+        
+        const { 
+            first_name, 
+            last_name, 
+            gender, 
+            dob, 
+            house_flat, 
+            area_society, 
+            city, 
+            state, 
+            country, 
+            pin_code 
+        } = req.body;
 
-        const query = `
-            UPDATE users
-            SET first_name = ?, last_name = ?, gender = ?, dob = ?, house_flat = ?, area_society = ?, city = ?, state = ?, country = ?, pin_code = ?
-            WHERE id = ?
-        `;
-        const values = [first_name, last_name, gender, dob, house_flat, area_society, city, state, country, pin_code, id];
+        // Initialize arrays for the query and values
+        let updates = [];
+        let values = [];
 
-        await promisify(db.query).bind(db)(query, values);
+        // Check each field and add to the query if it is explicitly provided (not undefined)
+        if (first_name !== undefined) {
+            updates.push("first_name = ?");
+            values.push(first_name);
+        }
+        if (last_name !== undefined) {
+            updates.push("last_name = ?");
+            values.push(last_name);
+        }
+        if (gender !== undefined) {
+            updates.push("gender = ?");
+            values.push(gender);
+        }
+        if (dob !== undefined) {
+            updates.push("dob = ?");
+            values.push(dob);
+        }
+        if (house_flat !== undefined) {
+            updates.push("house_flat = ?");
+            values.push(house_flat);
+        }
+        if (area_society !== undefined) {
+            updates.push("area_society = ?");
+            values.push(area_society);
+        }
+        if (city !== undefined) {
+            updates.push("city = ?");
+            values.push(city);
+        }
+        if (state !== undefined) {
+            updates.push("state = ?");
+            values.push(state);
+        }
+        if (country !== undefined) {
+            updates.push("country = ?");
+            values.push(country);
+        }
+        if (pin_code !== undefined) {
+            updates.push("pin_code = ?");
+            values.push(pin_code);
+        }
 
-        res.status(200).json({ message: 'Profile updated successfully' });
+        // If no fields are provided to update, return an error
+        if (updates.length === 0) {
+            console.log("No fields provided for update");
+            return res.status(400).json({ message: 'No fields provided for update' });
+        }
+
+        // Build the query string by joining all updates
+        let query = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
+        values.push(id);  // Add user ID to the values
+
+        // console.log("Generated SQL Query: ", query);
+        // console.log("Values: ", values);
+
+        // Execute the SQL query
+        const [result] = await db.query(query, values);
+        
+        // console.log("SQL Query Result: ", result);
+
+        // Respond with success if rows were affected
+        if (result.affectedRows > 0) {
+            console.log("Profile updated successfully");
+            return res.status(200).json({ message: 'Profile updated successfully' });
+        } else {
+            console.log("No rows updated");
+            return res.status(400).json({ message: 'No rows updated' });
+        }
+
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        console.error("Error updating profile: ", err);
+        return res.status(500).json({ message: 'Server error' });
     }
 };
 
-
+//Update Avatar(photo1)
 exports.updateAvatar = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { first_name, last_name, email, house_flat, area_society, city, state, country, pin_code } = req.body;
-        
+
         // Handle avatar update
         let avatarUrl = null;
-        if (req.file) { // If a new avatar is uploaded
+        if (req.file) { 
             const avatarLocalPath = req.file.path;
+            // console.log("avatarLocalPath : ", avatarLocalPath)
             const uploadResponse = await uploadOnCloudinary(avatarLocalPath);
             
             if (uploadResponse && uploadResponse.url) {
@@ -305,38 +394,73 @@ exports.updateAvatar = async (req, res) => {
             } else {
                 return res.status(400).json({ message: 'Error uploading avatar to Cloudinary' });
             }
+        } else {
+            return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        // SQL query for profile update
+        // SQL query for avatar update only
         const query = `
             UPDATE users
-            SET first_name = ?, last_name = ?, email = ?, house_flat = ?, area_society = ?, city = ?, state = ?, country = ?, pin_code = ?, avatar = ?
+            SET photo1 = ?
             WHERE id = ?
         `;
 
-        const values = [
-            first_name, last_name, email, house_flat, area_society, city, state, country, pin_code, avatarUrl || null, userId
-        ];
+        const values = [avatarUrl, userId];
+
 
         // Execute SQL update
         const [result] = await db.query(query, values);
-
-        if (result.affectedRows > 0) {
-            // Fetch the updated user profile
-            const [updatedUser] = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
-            
-            // Return success response
-            return res.status(200).json({ 
-                message: 'Profile updated successfully', 
-                user: updatedUser[0] // Return the updated user
-            });
-        } else {
-            return res.status(400).json({ message: 'Profile update failed' });
-        }
+     
+        return res.status(200).json({ 
+            message: 'Avatar updated successfully', 
+        });
+        
 
     } catch (error) {
-        console.error('Error updating profile:', error);
+        console.error('Error updating avatar:', error);
         return res.status(500).json({ message: 'Server error, please try again later' });
     }
 };
 
+//Update CoverImage(photo2)
+exports.updateCoverImage = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        // Handle avatar update
+        let coverImageUrl = null;
+        if (req.file) { // If a new avatar is uploaded
+            const coverImageLocalPath = req.file.path;
+            // console.log("coverImageLocalPath : ", coverImageLocalPath)
+            const uploadResponse = await uploadOnCloudinary(coverImageLocalPath);
+            
+            if (uploadResponse && uploadResponse.url) {
+                coverImageUrl = uploadResponse.url; 
+            } else {
+                return res.status(400).json({ message: 'Error uploading avatar to Cloudinary' });
+            }
+        } else {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        // SQL query for avatar update only
+        const query = `
+            UPDATE users
+            SET photo2 = ?
+            WHERE id = ?
+        `;
+
+        const values = [coverImageUrl, userId];
+
+        // Execute SQL update
+        const [result] = await db.query(query, values);
+
+        return res.status(200).json({ 
+            message: 'coverImage updated successfully', 
+        });
+        
+
+    } catch (error) {
+        console.error('Error updating coverImage:', error);
+        return res.status(500).json({ message: 'Server error, please try again later' });
+    }
+};

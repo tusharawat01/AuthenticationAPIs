@@ -1,5 +1,5 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+// const bodyParser = require('body-parser');
 const userRoutes = require('./routes/userRoutes.js');
 const dashboardRoutes = require('./routes/dashboardRoutes.js');
 const db = require('./config/db.js'); // Import the db pool
@@ -7,14 +7,22 @@ const { createAdminAccount } = require('./controllers/userController.js');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 
 // Middleware
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({
+    extended: true,
+    limit: "16kb"
+}));
 
 // Routes
 app.use('/api/auth', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
+app.get('/test', (req, res) => {
+    res.status(200).send('<h1>Hello Everything is Okayy!!</h1>')
+})
 
 // Function to start the server
 const startServer = async () => {

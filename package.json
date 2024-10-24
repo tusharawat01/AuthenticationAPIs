@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node src/app.js"
+    "start": "nodemon src/app.js"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +22,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.11.3",
     "nodemailer": "^6.9.15",
+    "nodemon": "^3.1.7",
     "otp-generator": "^4.0.1"
   }
 }
