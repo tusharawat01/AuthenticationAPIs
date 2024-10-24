@@ -266,8 +266,30 @@ exports.updatePassword = async (req, res) => {
     }
 };
 
-
+// Update Profile Controller
 exports.updateProfile = async (req, res) => {
+    try {
+        const { id } = req.user;  // Assuming you're using a JWT for authentication and have middleware for user extraction
+        const { first_name, last_name, gender, dob, house_flat, area_society, city, state, country, pin_code } = req.body;
+
+        const query = `
+            UPDATE users
+            SET first_name = ?, last_name = ?, gender = ?, dob = ?, house_flat = ?, area_society = ?, city = ?, state = ?, country = ?, pin_code = ?
+            WHERE id = ?
+        `;
+        const values = [first_name, last_name, gender, dob, house_flat, area_society, city, state, country, pin_code, id];
+
+        await promisify(db.query).bind(db)(query, values);
+
+        res.status(200).json({ message: 'Profile updated successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+exports.updateAvatar = async (req, res) => {
     try {
         const userId = req.user.id;
         const { first_name, last_name, email, house_flat, area_society, city, state, country, pin_code } = req.body;

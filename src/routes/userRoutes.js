@@ -34,5 +34,6 @@ router.post("/user/password/update",userController.updatePassword);
 
 //Update Profile
 router.put('/update-profile', verifyToken, userController.updateProfile);
+router.put('/update-avatar', verifyToken, upload.single('photo1'), userController.updateAvatar);
 
 module.exports = router;
