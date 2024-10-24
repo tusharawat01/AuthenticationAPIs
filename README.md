@@ -5,6 +5,11 @@ This project implements a role-based authentication system using Node.js, Expres
 ## Folder Structure
 
 ```plaintext
+├── .gitignore                    # Git ignore file
+├── .env                          # Secrets
+├── .env.sample                   # Consists of secrets required in project
+├── package.json                  # Node.js dependencies and scripts
+├── public/temp/.gitkeep          # to save or upload file locally
 src/
 │
 ├── config/
@@ -24,8 +29,12 @@ src/
 ├── middleware/
 │   ├── authMiddleware.js         # Middleware for JWT verification   not used in project
 │   ├── roleMiddleware.js         # Middleware for role checking
+|   ├── multerMiddleWare.js       # Multer configuration
+|
+├── services/
+│   ├── sendMail.js               # Configuration of nodemailer
+|
+├── utils/
+│   ├── Cloudinary.js             # Configuration for cloudinary for file upload
 │
-├── .gitignore                    # Git ignore file
-├── .env.sample                   # Consists of secrets required in project
-├── package.json                  # Node.js dependencies and scripts
 └── app.js                        # Main application file
