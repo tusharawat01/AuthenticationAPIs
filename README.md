@@ -20,6 +20,11 @@ This project implements a role-based authentication system using Node.js, Expres
 2. Receive a put request with token in header and then verify using middleware.
 3. Execute update query
 
+## Steps for Update User(Avatar, Cover Image & Profile Data)
+1. Created a put route in which a two middleware is passed one is for verify token & get user id and other is multer to upload
+2. merge the all three api in one to create one api
+3. if everthing ok at last send thr res "Updated successfully"
+
 ## Folder Structure
 
 ```plaintext
