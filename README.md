@@ -5,25 +5,25 @@ This project implements a role-based authentication system using Node.js, Expres
 # Task 2 added Forgot Password, Update Profile & Update photos functionality
 
 ## Steps for Forgot Password
-1. Send a otp to the given email (using nodemailer, otp-generator)
+1. Send an OTP to the registered email (using nodemailer, otp-generator) 
 2. Confirm the OTP is correct or not
-3. Finally update the Password and saved to databse in hashed form
+3. Finally update the password and save it to databse in hashed form
 
 ## Steps for Update Profile
-1. Receive a put request including header with token which received during login
-2. Then used a middleware verifyToken to verify the Token and also will get user id which have to update
-3. Then check for the feilds which have to update and save into array
+1. Receive a put request including header with token which was received during login
+2. Then use a middleware verifyToken to verify the Token and get the  user id which need to be updated
+3. Then check for the feilds which need to be updated and save them into array
 4. Finally execut update query
 
 ## Steps for Update Photos Functionality
-1. Create two seperate Api one for avatar(photo1) & another for coverImage(photo2)
+1. Create two seperate APIs one for avatar(photo1) & another for coverImage(photo2)
 2. Receive a put request with token in header and then verify using middleware.
 3. Execute update query
 
 ## Steps for Update User(Avatar, Cover Image & Profile Data)
-1. Created a put route in which a two middleware is passed one is for verify token & get user id and other is multer to upload
-2. merge the all three api in one to create one api
-3. if everthing ok at last send thr res "Updated successfully"
+1. Created a put route in which a two middlewarew are passed one is for verify token & get user id and other is multer to upload files
+2. Merge all the three APIs to create one API
+3. At last, if everthing okay, send the response "Updated successfully"
 
 ## Folder Structure
 
