@@ -44,8 +44,14 @@ router.post("/user/verify/forgot/otp",userController.verifyForgotPassOTP);
 router.post("/user/password/update",userController.updatePassword);
 
 //Update Profile
-router.put('/update-profile', verifyToken, userController.updateProfile);
-router.put('/update-avatar', verifyToken, upload.single('photo1'), userController.updateAvatar);
-router.put('/update-cover-image', verifyToken, upload.single('photo1'), userController.updateCoverImage);
+// router.put('/update-profile', verifyToken, userController.updateProfile);
+// router.put('/update-avatar', verifyToken, upload.single('photo1'), userController.updateAvatar);
+// router.put('/update-cover-image', verifyToken, upload.single('photo1'), userController.updateCoverImage);
+
+//Update User in single Route and API
+router.put('/update-user', verifyToken, upload.fields([
+    { name: 'photo1', maxCount: 1 },
+    { name: 'photo2', maxCount: 1 }
+]), userController.updateUser);
 
 module.exports = router;

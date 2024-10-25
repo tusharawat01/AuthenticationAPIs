@@ -280,187 +280,270 @@ exports.updatePassword = async (req, res) => {
     }
 };
 
-// Update Profile Controller
-exports.updateProfile = async (req, res) => {
-    try {
-        const { id } = req.user; 
+// // Update Profile Controller
+// exports.updateProfile = async (req, res) => {
+//     try {
+//         const { id } = req.user; 
         
-        const { 
-            first_name, 
-            last_name, 
-            gender, 
-            dob, 
-            house_flat, 
-            area_society, 
-            city, 
-            state, 
-            country, 
-            pin_code 
-        } = req.body;
+//         const { 
+//             first_name, 
+//             last_name, 
+//             gender, 
+//             dob, 
+//             house_flat, 
+//             area_society, 
+//             city, 
+//             state, 
+//             country, 
+//             pin_code 
+//         } = req.body;
 
-        // Initialize arrays for the query and values
-        let updates = [];
-        let values = [];
+//         // Initialize arrays for the query and values
+//         let updates = [];
+//         let values = [];
 
-        // Check each field and add to the query if it is explicitly provided (not undefined)
-        if (first_name !== undefined) {
-            updates.push("first_name = ?");
-            values.push(first_name);
-        }
-        if (last_name !== undefined) {
-            updates.push("last_name = ?");
-            values.push(last_name);
-        }
-        if (gender !== undefined) {
-            updates.push("gender = ?");
-            values.push(gender);
-        }
-        if (dob !== undefined) {
-            updates.push("dob = ?");
-            values.push(dob);
-        }
-        if (house_flat !== undefined) {
-            updates.push("house_flat = ?");
-            values.push(house_flat);
-        }
-        if (area_society !== undefined) {
-            updates.push("area_society = ?");
-            values.push(area_society);
-        }
-        if (city !== undefined) {
-            updates.push("city = ?");
-            values.push(city);
-        }
-        if (state !== undefined) {
-            updates.push("state = ?");
-            values.push(state);
-        }
-        if (country !== undefined) {
-            updates.push("country = ?");
-            values.push(country);
-        }
-        if (pin_code !== undefined) {
-            updates.push("pin_code = ?");
-            values.push(pin_code);
-        }
+//         // Check each field and add to the query if it is explicitly provided (not undefined)
+//         if (first_name !== undefined) {
+//             updates.push("first_name = ?");
+//             values.push(first_name);
+//         }
+//         if (last_name !== undefined) {
+//             updates.push("last_name = ?");
+//             values.push(last_name);
+//         }
+//         if (gender !== undefined) {
+//             updates.push("gender = ?");
+//             values.push(gender);
+//         }
+//         if (dob !== undefined) {
+//             updates.push("dob = ?");
+//             values.push(dob);
+//         }
+//         if (house_flat !== undefined) {
+//             updates.push("house_flat = ?");
+//             values.push(house_flat);
+//         }
+//         if (area_society !== undefined) {
+//             updates.push("area_society = ?");
+//             values.push(area_society);
+//         }
+//         if (city !== undefined) {
+//             updates.push("city = ?");
+//             values.push(city);
+//         }
+//         if (state !== undefined) {
+//             updates.push("state = ?");
+//             values.push(state);
+//         }
+//         if (country !== undefined) {
+//             updates.push("country = ?");
+//             values.push(country);
+//         }
+//         if (pin_code !== undefined) {
+//             updates.push("pin_code = ?");
+//             values.push(pin_code);
+//         }
 
-        // If no fields are provided to update, return an error
-        if (updates.length === 0) {
-            console.log("No fields provided for update");
-            return res.status(400).json({ message: 'No fields provided for update' });
-        }
+//         // If no fields are provided to update, return an error
+//         if (updates.length === 0) {
+//             console.log("No fields provided for update");
+//             return res.status(400).json({ message: 'No fields provided for update' });
+//         }
 
-        // Build the query string by joining all updates
-        let query = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
-        values.push(id);  // Add user ID to the values
+//         // Build the query string by joining all updates
+//         let query = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
+//         values.push(id);  // Add user ID to the values
 
-        // console.log("Generated SQL Query: ", query);
-        // console.log("Values: ", values);
+//         // console.log("Generated SQL Query: ", query);
+//         // console.log("Values: ", values);
 
-        // Execute the SQL query
-        const [result] = await db.query(query, values);
+//         // Execute the SQL query
+//         const [result] = await db.query(query, values);
         
-        // console.log("SQL Query Result: ", result);
+//         // console.log("SQL Query Result: ", result);
 
-        // Respond with success if rows were affected
-        if (result.affectedRows > 0) {
-            console.log("Profile updated successfully");
-            return res.status(200).json({ message: 'Profile updated successfully' });
-        } else {
-            console.log("No rows updated");
-            return res.status(400).json({ message: 'No rows updated' });
-        }
+//         // Respond with success if rows were affected
+//         if (result.affectedRows > 0) {
+//             console.log("Profile updated successfully");
+//             return res.status(200).json({ message: 'Profile updated successfully' });
+//         } else {
+//             console.log("No rows updated");
+//             return res.status(400).json({ message: 'No rows updated' });
+//         }
 
-    } catch (err) {
-        console.error("Error updating profile: ", err);
-        return res.status(500).json({ message: 'Server error' });
-    }
-};
+//     } catch (err) {
+//         console.error("Error updating profile: ", err);
+//         return res.status(500).json({ message: 'Server error' });
+//     }
+// };
 
-//Update Avatar(photo1)
-exports.updateAvatar = async (req, res) => {
-    try {
-        const userId = req.user.id;
+// //Update Avatar(photo1)
+// exports.updateAvatar = async (req, res) => {
+//     try {
+//         const userId = req.user.id;
 
-        // Handle avatar update
-        let avatarUrl = null;
-        if (req.file) { 
-            const avatarLocalPath = req.file.path;
-            // console.log("avatarLocalPath : ", avatarLocalPath)
-            const uploadResponse = await uploadOnCloudinary(avatarLocalPath);
+//         // Handle avatar update
+//         let avatarUrl = null;
+//         if (req.file) { 
+//             const avatarLocalPath = req.file.path;
+//             // console.log("avatarLocalPath : ", avatarLocalPath)
+//             const uploadResponse = await uploadOnCloudinary(avatarLocalPath);
             
-            if (uploadResponse && uploadResponse.url) {
-                avatarUrl = uploadResponse.url; // Get the URL of the uploaded image
-            } else {
-                return res.status(400).json({ message: 'Error uploading avatar to Cloudinary' });
-            }
-        } else {
-            return res.status(400).json({ message: 'No file uploaded' });
-        }
+//             if (uploadResponse && uploadResponse.url) {
+//                 avatarUrl = uploadResponse.url; // Get the URL of the uploaded image
+//             } else {
+//                 return res.status(400).json({ message: 'Error uploading avatar to Cloudinary' });
+//             }
+//         } else {
+//             return res.status(400).json({ message: 'No file uploaded' });
+//         }
 
-        // SQL query for avatar update only
-        const query = `
-            UPDATE users
-            SET photo1 = ?
-            WHERE id = ?
-        `;
+//         // SQL query for avatar update only
+//         const query = `
+//             UPDATE users
+//             SET photo1 = ?
+//             WHERE id = ?
+//         `;
 
-        const values = [avatarUrl, userId];
+//         const values = [avatarUrl, userId];
 
 
-        // Execute SQL update
-        const [result] = await db.query(query, values);
+//         // Execute SQL update
+//         const [result] = await db.query(query, values);
      
-        return res.status(200).json({ 
-            message: 'Avatar updated successfully', 
-        });
+//         return res.status(200).json({ 
+//             message: 'Avatar updated successfully', 
+//         });
         
 
-    } catch (error) {
-        console.error('Error updating avatar:', error);
-        return res.status(500).json({ message: 'Server error, please try again later' });
-    }
-};
+//     } catch (error) {
+//         console.error('Error updating avatar:', error);
+//         return res.status(500).json({ message: 'Server error, please try again later' });
+//     }
+// };
 
-//Update CoverImage(photo2)
-exports.updateCoverImage = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        // Handle avatar update
-        let coverImageUrl = null;
-        if (req.file) { // If a new avatar is uploaded
-            const coverImageLocalPath = req.file.path;
-            // console.log("coverImageLocalPath : ", coverImageLocalPath)
-            const uploadResponse = await uploadOnCloudinary(coverImageLocalPath);
+// //Update CoverImage(photo2)
+// exports.updateCoverImage = async (req, res) => {
+//     try {
+//         const userId = req.user.id;
+//         // Handle coverImage update
+//         let coverImageUrl = null;
+//         if (req.file) { // If a new coverImage is uploaded
+//             const coverImageLocalPath = req.file.path;
+//             // console.log("coverImageLocalPath : ", coverImageLocalPath)
+//             const uploadResponse = await uploadOnCloudinary(coverImageLocalPath);
             
-            if (uploadResponse && uploadResponse.url) {
-                coverImageUrl = uploadResponse.url; 
+//             if (uploadResponse && uploadResponse.url) {
+//                 coverImageUrl = uploadResponse.url; 
+//             } else {
+//                 return res.status(400).json({ message: 'Error uploading avatar to Cloudinary' });
+//             }
+//         } else {
+//             return res.status(400).json({ message: 'No file uploaded' });
+//         }
+
+//         // SQL query for avatar update only
+//         const query = `
+//             UPDATE users
+//             SET photo2 = ?
+//             WHERE id = ?
+//         `;
+
+//         const values = [coverImageUrl, userId];
+
+//         // Execute SQL update
+//         const [result] = await db.query(query, values);
+
+//         return res.status(200).json({ 
+//             message: 'coverImage updated successfully', 
+//         });
+        
+
+//     } catch (error) {
+//         console.error('Error updating coverImage:', error);
+//         return res.status(500).json({ message: 'Server error, please try again later' });
+//     }
+// };
+
+
+//update User in single api
+exports.updateUser = async (req, res) => {
+    try {
+        const { id } = req.user;
+
+        // Profile data
+        const { first_name, last_name, gender, dob, house_flat, area_society, city, state, country, pin_code } = req.body;
+
+        // Files for avatar and cover image
+        const avatarFile = req.files?.photo1 ? req.files.photo1[0] : null;
+        const coverImageFile = req.files?.photo2 ? req.files.photo2[0] : null;
+
+        // Track if any updates were made
+        let updatePerformed = false;
+
+        // Profile data update
+        let profileUpdates = [];
+        let profileValues = [];
+
+        if (first_name) { profileUpdates.push("first_name = ?"); profileValues.push(first_name); }
+        if (last_name) { profileUpdates.push("last_name = ?"); profileValues.push(last_name); }
+        if (gender) { profileUpdates.push("gender = ?"); profileValues.push(gender); }
+        if (dob) { profileUpdates.push("dob = ?"); profileValues.push(dob); }
+        if (house_flat) { profileUpdates.push("house_flat = ?"); profileValues.push(house_flat); }
+        if (area_society) { profileUpdates.push("area_society = ?"); profileValues.push(area_society); }
+        if (city) { profileUpdates.push("city = ?"); profileValues.push(city); }
+        if (state) { profileUpdates.push("state = ?"); profileValues.push(state); }
+        if (country) { profileUpdates.push("country = ?"); profileValues.push(country); }
+        if (pin_code) { profileUpdates.push("pin_code = ?"); profileValues.push(pin_code); }
+
+        // Execute profile update if there are fields to update
+        if (profileUpdates.length > 0) {
+            let profileQuery = `UPDATE users SET ${profileUpdates.join(', ')} WHERE id = ?`;
+            profileValues.push(id);
+            await db.query(profileQuery, profileValues);
+            console.log("Profile updated successfully");
+            updatePerformed = true;
+        }
+
+        // Handle avatar upload
+        if (avatarFile) {
+            const avatarLocalPath = avatarFile.path;
+            const avatarUpload = await uploadOnCloudinary(avatarLocalPath);
+
+            if (avatarUpload && avatarUpload.url) {
+                const avatarQuery = `UPDATE users SET photo1 = ? WHERE id = ?`;
+                await db.query(avatarQuery, [avatarUpload.url, id]);
+                console.log("Avatar updated successfully");
+                updatePerformed = true;
             } else {
                 return res.status(400).json({ message: 'Error uploading avatar to Cloudinary' });
             }
-        } else {
-            return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        // SQL query for avatar update only
-        const query = `
-            UPDATE users
-            SET photo2 = ?
-            WHERE id = ?
-        `;
+        // Handle cover image upload
+        if (coverImageFile) {
+            const coverImageLocalPath = coverImageFile.path;
+            const coverImageUpload = await uploadOnCloudinary(coverImageLocalPath);
 
-        const values = [coverImageUrl, userId];
+            if (coverImageUpload && coverImageUpload.url) {
+                const coverImageQuery = `UPDATE users SET photo2 = ? WHERE id = ?`;
+                await db.query(coverImageQuery, [coverImageUpload.url, id]);
+                console.log("Cover image updated successfully");
+                updatePerformed = true;
+            } else {
+                return res.status(400).json({ message: 'Error uploading cover image to Cloudinary' });
+            }
+        }
 
-        // Execute SQL update
-        const [result] = await db.query(query, values);
+        // If no updates were made, return an error
+        if (!updatePerformed) {
+            return res.status(400).json({ message: 'No data provided for update' });
+        }
 
-        return res.status(200).json({ 
-            message: 'coverImage updated successfully', 
-        });
-        
-
+        return res.status(200).json({ message: 'Update successful' });
     } catch (error) {
-        console.error('Error updating coverImage:', error);
-        return res.status(500).json({ message: 'Server error, please try again later' });
+        console.error(error);
+        return res.status(500).json({ message: 'Server error', error });
     }
 };
+
