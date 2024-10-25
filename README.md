@@ -1,6 +1,29 @@
-# Role-Based Authentication System
+# Task 1 Role-Based Authentication System
 
-This project implements a role-based authentication system using Node.js, Express, MySQL, and JWT. It provides separate endpoints for customer and service provider registration and login, as well as admin login functionality.
+This project implements a role-based authentication system using Node.js, Express, MySQL, Cloudinary, Multer, and JWT. It provides separate endpoints for customer and service provider registration and login, as well as admin login functionality.
+
+# Task 2 added Forgot Password, Update Profile & Update photos functionality
+
+## Steps for Forgot Password
+1. Send a otp to the given email (using nodemailer, otp-generator)
+2. Confirm the OTP is correct or not
+3. Finally update the Password and saved to databse in hashed form
+
+## Steps for Update Profile
+1. Receive a put request including header with token which received during login
+2. Then used a middleware verifyToken to verify the Token and also will get user id which have to update
+3. Then check for the feilds which have to update and save into array
+4. Finally execut update query
+
+## Steps for Update Photos Functionality
+1. Create two seperate Api one for avatar(photo1) & another for coverImage(photo2)
+2. Receive a put request with token in header and then verify using middleware.
+3. Execute update query
+
+## Steps for Update User(Avatar, Cover Image & Profile Data)
+1. Created a put route in which a two middleware is passed one is for verify token & get user id and other is multer to upload
+2. merge the all three api in one to create one api
+3. if everthing ok at last send thr res "Updated successfully"
 
 ## Folder Structure
 
